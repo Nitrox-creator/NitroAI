@@ -241,7 +241,7 @@ async function fetchOpenAI(userText) {
         Authorization: `Bearer ${key}`,
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+       model: "gpt-4o-mini"
         messages: [
           { role: 'system', content: 'You are a helpful, friendly assistant. Keep replies concise and conversational.' },
           ...history.slice(-20),
