@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Chatbot</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="chat-container">
+    <div class="file-protocol-warning" id="fileProtocolWarning" hidden>
+      Open this page via a local server for OpenAI to work. In this folder run: <code>npx serve</code> then visit <code>http://localhost:3000</code>
+    </div>
+    <header class="chat-header">
+      <div class="avatar">✦</div>
+      <div class="header-info">
+        <h1>AI Assistant</h1>
+        <span class="status" id="apiStatus">Online</span>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="icon-btn" id="clearHistoryBtn" title="Clear chat history">🗑</button>
+        <button type="button" class="icon-btn" id="settingsBtn" title="Settings">⚙</button>
+      </div>
+    </header>
+
+    <main class="chat-messages" id="chatMessages">
+      <div class="message bot" data-welcome>
+        <div class="bubble">
+          <p>Hi! I'm your AI assistant. Ask me anything—greetings, the time, how I'm doing, or just chat. Add an API key in Settings for full AI replies.</p>
+        </div>
+      </div>
+    </main>
+
+    <form class="chat-input" id="chatForm">
+      <input
+        type="text"
+        id="userInput"
+        placeholder="Type a message..."
+        autocomplete="off"
+        maxlength="500"
+      />
+      <button type="submit" id="sendBtn" aria-label="Send message">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+        </svg>
+      </button>
+    </form>
+  </div>
+
+  <div class="modal-overlay" id="settingsModal" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button type="button" class="icon-btn modal-close" id="closeSettingsBtn" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <label for="apiKeyInput">OpenAI API key (optional)</label>
+        <input type="password" id="apiKeyInput" placeholder="sk-..." autocomplete="off" />
+        <p class="modal-hint">Leave blank to use built-in replies. Get a key at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com</a>.</p>
+        <button type="button" class="btn-primary" id="saveSettingsBtn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="chat.js"></script>
+</body>
+</html>
