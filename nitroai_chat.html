@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NitroAI</title>
+<style>
+:root{color-scheme:dark;--bg:#212121;--side:#171717;--panel:#2f2f2f;--line:#3d3d3d;--text:#f3f3f3;--muted:#aaa;--accent:#10a37f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,textarea{font:inherit;color:inherit}button{cursor:pointer;background:transparent;border:1px solid transparent;border-radius:10px;padding:9px 12px}button:hover{background:#ffffff12}
+.layout{height:100dvh;display:grid;grid-template-columns:260px minmax(0,1fr)}
+aside{background:var(--side);display:flex;flex-direction:column;padding:12px;gap:12px;border-right:1px solid #ffffff08;min-height:0}
+.brand{display:flex;align-items:center;gap:10px;padding:6px 7px;font-size:18px;font-weight:700}.logo{height:30px;width:30px;border-radius:50%;background:var(--accent);color:#061b15;display:grid;place-items:center;font-weight:900}
+.new{border:1px solid #ffffff24;text-align:left;display:flex;align-items:center;gap:9px}
+.section{font-size:12px;color:var(--muted);padding:4px 8px 0}
+#chatList{overflow:auto;display:flex;flex-direction:column;gap:3px}
+.chatrow{display:flex;align-items:center;gap:4px}.chatrow .chatname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;font-size:13px;padding:9px}.chatrow.selected{background:#ffffff12;border-radius:10px}.delete{font-size:13px;color:#aaa;padding:7px}
+.sidebottom{margin-top:auto;display:grid;gap:8px}.sourcebox{border:1px solid #ffffff20;border-radius:12px;padding:10px;font-size:12px;color:var(--muted)}
+main{display:flex;flex-direction:column;min-width:0;min-height:0}.top{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid #ffffff08}.top strong{font-weight:600}
+#messages{flex:1;overflow:auto;padding:24px 18px 30px;display:flex;flex-direction:column;gap:24px;scroll-behavior:smooth}
+.empty{margin:auto;text-align:center;max-width:640px;padding:20px}.empty h1{font-size:30px;font-weight:600;margin:0 0 20px}.suggestions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:24px}.suggestions button{border:1px solid #ffffff20;text-align:left;color:#ddd}
+.message{width:min(760px,100%);margin:0 auto;display:flex;gap:14px;align-items:flex-start}.avatar{width:30px;height:30px;flex:0 0 30px;border-radius:50%;display:grid;place-items:center;background:#343434;font-size:13px;font-weight:700}.message.user .avatar{background:#494949}.body{min-width:0;white-space:pre-wrap;overflow-wrap:anywhere;padding-top:2px}.body p{margin:0 0 12px}.body a{color:#8ab4ff}.cite{font-size:12px;color:#9fd8c8;margin-top:8px}
+.composerwrap{padding:10px 18px 18px}.composer{width:min(760px,100%);margin:auto;background:#2f2f2f;border:1px solid #555;border-radius:24px;padding:10px 12px;display:flex;gap:10px;align-items:flex-end;box-shadow:0 5px 25px #0002}
+textarea{flex:1;min-width:0;resize:none;max-height:180px;border:0;outline:0;background:transparent;padding:8px 5px;line-height:1.5}textarea::placeholder{color:#aaa}.send{background:#f4f4f4;color:#171717;border-radius:50%;height:36px;width:36px;padding:0;font-weight:800}
+.footnote{text-align:center;color:#888;font-size:11px;padding-top:8px}.status{font-size:12px;color:#9fd8c8;padding:0 18px 8px;text-align:center}
+.modal{position:fixed;inset:0;background:#0009;display:none;place-items:center;padding:18px}.modal.open{display:grid}.dialog{width:min(560px,100%);background:#252525;border:1px solid #555;border-radius:16px;padding:20px;display:grid;gap:12px}.dialog input,.dialog textarea{background:#171717;border:1px solid #555;border-radius:9px;padding:10px;width:100%}.dialog textarea{min-height:130px}.actions{display:flex;justify-content:flex-end;gap:8px}
+@media(max-width:720px){.layout{grid-template-columns:1fr}aside{display:none}.top{height:50px}.suggestions{grid-template-columns:1fr}.empty h1{font-size:25px}}
+</style></head>
+<body>
+<div class="layout">
+<aside>
+ <div class="brand"><span class="logo">N</span>NitroAI</div>
+ <button class="new" id="newChat">＋ Nouveau chat</button>
+ <div class="section">Historique</div><div id="chatList"></div>
+ <div class="sidebottom">
+  <button id="addKnowledge">＋ Ajouter une connaissance</button>
+  <div class="sourcebox"><b>Base de connaissances</b><br>Mini corpus de démonstration modifiable. Le dataset externe est proposé dans le README du projet.</div>
+ </div>
+</aside>
+<main>
+ <div class="top"><strong id="chatTitle">NitroAI</strong><button id="modeButton">Mode : IA + base</button></div>
+ <div id="messages"><div class="empty"><h1>Que veux-tu explorer ?</h1><div style="color:#aaa">NitroAI est ton assistant. Essaie une question ou ajoute des connaissances.</div><div class="suggestions"><button data-q="Pourquoi le ciel est-il bleu ?">Pourquoi le ciel est-il bleu ?</button><button data-q="Comment fonctionne un moteur à quatre temps ?">Comment fonctionne un moteur ?</button><button data-q="Que sais-tu du système solaire ?">Que sais-tu du système solaire ?</button><button data-q="Explique-moi les bases de Python.">Explique-moi les bases de Python.</button></div></div></div>
+ <div class="status" id="status">Mode démonstration : recherche dans le corpus local.</div>
+ <div class="composerwrap"><form id="form" class="composer"><textarea id="prompt" rows="1" placeholder="Message à NitroAI…" aria-label="Message"></textarea><button class="send" type="submit" aria-label="Envoyer">↑</button></form><div class="footnote">NitroAI peut se tromper. Vérifie les informations importantes.</div></div>
+</main></div>
+<div class="modal" id="modal"><div class="dialog"><h3 style="margin:0">Ajouter à la base de connaissances</h3><input id="knowTitle" placeholder="Titre de la connaissance"><textarea id="knowText" placeholder="Colle un texte libre, un extrait de cours ou une note…"></textarea><div class="actions"><button id="cancel">Annuler</button><button id="save" style="background:var(--accent);color:#071b15;font-weight:700">Enregistrer</button></div></div></div>
+<script>
+const starter=[
+{title:"Le ciel bleu",text:"Le ciel paraît bleu parce que les molécules de l’atmosphère diffusent davantage les courtes longueurs d’onde de la lumière solaire, notamment le bleu, que les longueurs d’onde plus longues. Ce phénomène s’appelle la diffusion de Rayleigh."},
+{title:"Moteur à quatre temps",text:"Un moteur à combustion interne convertit l’énergie de la combustion en mouvement mécanique. Les quatre temps sont l’admission, la compression, la combustion-détente et l’échappement."},
+{title:"Système solaire",text:"Le système solaire comprend le Soleil et les objets gravitant autour de lui, dont huit planètes, leurs satellites, des planètes naines, des astéroïdes et des comètes."},
+{title:"Python",text:"Python est un langage de programmation interprété connu pour sa syntaxe lisible. On peut l’utiliser pour automatiser des tâches, créer des sites, analyser des données ou développer des applications."},
+{title:"Wikipédia",text:"Wikipédia est une encyclopédie collaborative en ligne. Ses contenus sont réutilisables sous des licences libres, notamment CC BY-SA, en respectant les conditions d’attribution et de partage à l’identique."}
+];
+const $=id=>document.getElementById(id);
+let knowledge=JSON.parse(localStorage.getItem("nitroai_knowledge")||"null")||starter.slice();
+let chats=JSON.parse(localStorage.getItem("nitroai_chats")||"null")||[];
+let current=null,mode="both";
+function save(){localStorage.setItem("nitroai_knowledge",JSON.stringify(knowledge));localStorage.setItem("nitroai_chats",JSON.stringify(chats))}
+function newChat(){const c={id:Date.now().toString(),title:"Nouveau chat",messages:[]};chats.unshift(c);current=c.id;save();render()}
+function active(){return chats.find(c=>c.id===current)}
+function renderList(){const list=$("chatList");list.innerHTML="";chats.forEach(c=>{const row=document.createElement("div");row.className="chatrow"+(c.id===current?" selected":"");const b=document.createElement("button");b.className="chatname";b.textContent=c.title;b.onclick=()=>{current=c.id;render()};const d=document.createElement("button");d.className="delete";d.textContent="×";d.title="Supprimer ce chat";d.onclick=()=>{chats=chats.filter(x=>x.id!==c.id);if(current===c.id)current=chats[0]?.id||null;if(!current)newChat();save();render()};row.append(b,d);list.append(row)})}
+function renderMessages(){const root=$("messages"),c=active();root.innerHTML="";if(!c||!c.messages.length){root.innerHTML='<div class="empty"><h1>Que veux-tu explorer ?</h1><div style="color:#aaa">NitroAI est ton assistant. Essaie une question ou ajoute des connaissances.</div><div class="suggestions"><button data-q="Pourquoi le ciel est-il bleu ?">Pourquoi le ciel est-il bleu ?</button><button data-q="Comment fonctionne un moteur à quatre temps ?">Comment fonctionne un moteur ?</button><button data-q="Que sais-tu du système solaire ?">Que sais-tu du système solaire ?</button><button data-q="Explique-moi les bases de Python.">Explique-moi les bases de Python.</button></div></div>';root.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>send(b.dataset.q));return}
+c.messages.forEach(m=>{const wrap=document.createElement("div");wrap.className="message "+m.role;const avatar=document.createElement("div");avatar.className="avatar";avatar.textContent=m.role==="user"?"T":"N";const body=document.createElement("div");body.className="body";body.textContent=m.content;if(m.sources?.length){const s=document.createElement("div");s.className="cite";s.textContent="Sources dans la base : "+m.sources.join(" · ");body.append(s)}wrap.append(avatar,body);root.append(wrap)});root.scrollTop=root.scrollHeight}
+function render(){if(!current){if(chats.length)current=chats[0].id;else newChat()}renderList();renderMessages();$("chatTitle").textContent=active()?.title||"NitroAI"}
+function words(s){return(s.toLocaleLowerCase("fr").normalize("NFD").replace(/\p{Diacritic}/gu,"").match(/[a-z0-9]+/g)||[]).filter(w=>w.length>2)}
+function search(q){const qw=new Set(words(q));return knowledge.map(k=>{const all=words(k.title+" "+k.text);const score=all.reduce((n,w)=>n+(qw.has(w)?1:0),0);return{...k,score}}).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,4)}
+function response(q,found){if(!found.length)return "Je n’ai pas trouvé de passage pertinent dans la base locale. Tu peux ajouter une connaissance. Pour le moment, la version GitHub Pages utilise une recherche textuelle et ne génère pas encore une réponse libre avec un grand modèle.";return "J’ai retrouvé ces informations dans ma base de connaissances :\n\n"+found.map(x=>"**"+x.title+"**\n"+x.text).join("\n\n")+"\n\nJe peux approfondir si tu ajoutes d’autres documents."}
+function send(q){q=(q||$("prompt").value).trim();if(!q)return;if(!current)newChat();const c=active();c.messages.push({role:"user",content:q});if(c.messages.length===1)c.title=q.slice(0,38)+(q.length>38?"…":"");const found=search(q);let a=response(q,found);if(mode==="general"&&found.length===0)a="Je suis le prototype NitroAI. Pour l’instant, je peux surtout rechercher dans la base locale. Une prochaine étape sera de brancher un modèle de langage dans le navigateur.";c.messages.push({role:"assistant",content:a,sources:mode==="general"?[]:found.map(x=>x.title)});$("prompt").value="";save();render()}
+$("form").addEventListener("submit",e=>{e.preventDefault();send()});$("newChat").onclick=newChat;
+$("modeButton").onclick=()=>{mode=mode==="both"?"knowledge":mode==="knowledge"?"general":"both";$("modeButton").textContent="Mode : "+(mode==="both"?"IA + base":mode==="knowledge"?"Base seule":"IA générale");$("status").textContent="Mode de démonstration : "+mode};
+$("addKnowledge").onclick=()=>$("modal").classList.add("open");$("cancel").onclick=()=>$("modal").classList.remove("open");
+$("save").onclick=()=>{const title=$("knowTitle").value.trim(),text=$("knowText").value.trim();if(!title||!text){alert("Ajoute un titre et un texte.");return}knowledge.unshift({title,text});save();$("knowTitle").value="";$("knowText").value="";$("modal").classList.remove("open");$("status").textContent="Connaissance enregistrée dans ce navigateur."};
+$("prompt").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("form").requestSubmit()}});
+render();
+</script></body></html>
