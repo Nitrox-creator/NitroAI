@@ -105,4 +105,27 @@ async function loadPiafAutomatically() {
 }
 
 loadPiafAutomatically();
+ let piaf = null;
+
+async function importerPiaf() {
+  try {
+    const response = await fetch("./piaf-v1.2.json");
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    piaf = await response.json();
+
+    console.log("PIAF chargé avec succès !");
+    console.log("Données :", piaf);
+
+    return piaf;
+  } catch (error) {
+    console.error("Erreur de chargement PIAF :", error);
+    throw error;
+  }
+}
+
+importerPiaf();
 </script></body></html>
