@@ -1,131 +1,999 @@
 <!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NitroAI — Chat & base PIAF</title>
-<style>
-:root{color-scheme:dark;--bg:#212121;--side:#171717;--line:#3b3b3b;--text:#f1f1f1;--muted:#aaa;--green:#10a37f}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-button,input,textarea{font:inherit;color:inherit}button{cursor:pointer;border:1px solid transparent;background:transparent;border-radius:10px;padding:9px 12px}button:hover{background:#ffffff12}
-.layout{height:100dvh;display:grid;grid-template-columns:265px minmax(0,1fr)}aside{background:var(--side);border-right:1px solid #ffffff08;padding:12px;display:flex;flex-direction:column;gap:12px;min-height:0}
-.brand{display:flex;align-items:center;gap:10px;padding:7px;font-size:18px;font-weight:700}.logo{height:30px;width:30px;border-radius:50%;background:var(--green);color:#062118;display:grid;place-items:center;font-weight:900}
-.new{border:1px solid #ffffff24;text-align:left}.section{font-size:12px;color:var(--muted);padding:4px 8px}#chatList{overflow:auto;display:flex;flex-direction:column;gap:3px}.chatrow{display:flex;align-items:center;gap:3px}.chatrow.selected{background:#ffffff12;border-radius:10px}.chatname{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;padding:9px}.delete{color:#aaa;padding:6px}.sidebottom{margin-top:auto;display:grid;gap:8px}.dbbox{border:1px solid #ffffff20;border-radius:12px;padding:10px;font-size:12px;color:var(--muted)}.dbbox strong{color:#ddd}
-main{display:flex;flex-direction:column;min-width:0;min-height:0}.top{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid #ffffff08}.top strong{font-weight:600}.top select{background:#2f2f2f;border:1px solid #555;border-radius:9px;padding:7px}
-#messages{flex:1;overflow:auto;padding:25px 18px 32px;display:flex;flex-direction:column;gap:25px}.empty{margin:auto;text-align:center;max-width:620px;padding:20px}.empty h1{font-size:29px;font-weight:600;margin:0 0 16px}.muted{color:var(--muted)}.suggestions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:24px}.suggestions button{border:1px solid #ffffff20;text-align:left;color:#ddd}
-.message{width:min(760px,100%);margin:0 auto;display:flex;gap:14px;align-items:flex-start}.avatar{width:30px;height:30px;flex:0 0 30px;border-radius:50%;display:grid;place-items:center;background:#373737;font-size:13px;font-weight:700}.message.user .avatar{background:#494949}.body{min-width:0;white-space:pre-wrap;overflow-wrap:anywhere;padding-top:2px}.cite{font-size:12px;color:#9fd8c8;margin-top:8px}.composerwrap{padding:10px 18px 18px}.composer{width:min(760px,100%);margin:auto;background:#2f2f2f;border:1px solid #555;border-radius:24px;padding:10px 12px;display:flex;gap:10px;align-items:flex-end}.composer textarea{flex:1;min-width:0;resize:none;max-height:180px;border:0;outline:0;background:transparent;padding:8px 5px;line-height:1.5}.composer textarea::placeholder{color:#aaa}.send{background:#f4f4f4;color:#171717;border-radius:50%;height:36px;width:36px;padding:0;font-weight:800}.footnote{text-align:center;color:#888;font-size:11px;padding-top:8px}.status{font-size:12px;color:#9fd8c8;padding:0 18px 8px;text-align:center}
-.modal{position:fixed;inset:0;background:#0009;display:none;place-items:center;padding:18px}.modal.open{display:grid}.dialog{width:min(570px,100%);background:#252525;border:1px solid #555;border-radius:16px;padding:20px;display:grid;gap:12px}.dialog input,.dialog textarea{background:#171717;border:1px solid #555;border-radius:9px;padding:10px;width:100%}.dialog textarea{min-height:120px}.actions{display:flex;justify-content:flex-end;gap:8px}.primary{background:var(--green);color:#061b14;font-weight:700}
-@media(max-width:720px){.layout{grid-template-columns:1fr}aside{display:none}.suggestions{grid-template-columns:1fr}.empty h1{font-size:25px}}
-</style></head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NitroAI — Chat & base PIAF</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #1d1d1d;
+      --panel: #171717;
+      --panel-2: #212121;
+      --line: rgba(255,255,255,0.08);
+      --line-strong: rgba(255,255,255,0.18);
+      --text: #f3f3f3;
+      --muted: #a8a8a8;
+      --green: #10a37f;
+      --green-2: #0f8d6f;
+      --user: #1f2d2a;
+      --assistant: #272727;
+      --danger: #ff5d5d;
+      --warning: #ffbf69;
+      --shadow: 0 18px 40px rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, input, textarea, select {
+      font: inherit;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: transparent;
+      border-radius: 10px;
+      padding: 9px 12px;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    button:hover {
+      background: rgba(255,255,255,0.08);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .layout {
+      height: 100dvh;
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+    }
+
+    aside {
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .logo {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--green);
+      color: #08251b;
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .new {
+      border: 1px solid var(--line-strong);
+      text-align: left;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .section {
+      font-size: 12px;
+      color: var(--muted);
+      padding: 2px 8px 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    #chatList {
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-height: 80px;
+      padding-right: 2px;
+    }
+
+    .chatrow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: transparent;
+      border: 1px solid transparent;
+    }
+
+    .chatrow:hover {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .chatrow.selected {
+      background: rgba(16,163,127,0.14);
+      border-color: rgba(16,163,127,0.4);
+    }
+
+    .chatmain {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .chatlabel {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 600;
+    }
+
+    .chatdelete {
+      padding: 5px 7px;
+      font-size: 13px;
+      opacity: 0.8;
+      border: 1px solid transparent;
+    }
+
+    .sidebottom {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .dbbox {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 10px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .dbbox strong {
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .top {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.01);
+    }
+
+    .top strong {
+      font-size: 17px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    select {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 7px 10px;
+    }
+
+    .status {
+      padding: 10px 20px 0;
+      color: var(--muted);
+      font-size: 13px;
+      min-height: 24px;
+    }
+
+    #messages {
+      flex: 1;
+      overflow: auto;
+      padding: 16px 18px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .empty {
+      margin: auto;
+      text-align: center;
+      max-width: 620px;
+      padding: 20px;
+    }
+
+    .empty h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      line-height: 1.2;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .suggestions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .suggestions button {
+      text-align: left;
+      border: 1px solid var(--line-strong);
+      background: rgba(255,255,255,0.02);
+      padding: 12px 14px;
+    }
+
+    .message {
+      width: min(760px, 100%);
+      margin: 0 auto;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .message.user {
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      margin-top: 2px;
+    }
+
+    .message.user .avatar {
+      background: rgba(16,163,127,0.25);
+      color: #dffdf5;
+    }
+
+    .bubble {
+      max-width: min(720px, 100%);
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .message.user .bubble {
+      background: rgba(16,163,127,0.15);
+      border-color: rgba(16,163,127,0.35);
+    }
+
+    .message.assistant .bubble {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .composerwrap {
+      border-top: 1px solid var(--line);
+      padding: 12px 18px 14px;
+      background: rgba(255,255,255,0.01);
+    }
+
+    form.composer {
+      width: min(980px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 52px;
+      max-height: 180px;
+      resize: vertical;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      padding: 12px 14px;
+      outline: none;
+    }
+
+    textarea:focus, input:focus, select:focus {
+      border-color: rgba(16,163,127,0.7);
+      box-shadow: 0 0 0 3px rgba(16,163,127,0.12);
+      outline: none;
+    }
+
+    .send {
+      min-width: 120px;
+      background: var(--green);
+      color: #031a15;
+      font-weight: 700;
+      border: none;
+      height: 52px;
+    }
+
+    .send:hover {
+      background: var(--green-2);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      place-items: center;
+      padding: 18px;
+      z-index: 20;
+    }
+
+    .modal.open {
+      display: grid;
+    }
+
+    .dialog {
+      width: min(540px, 100%);
+      background: #252525;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .dialog h3 {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+
+    .dialog label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .dialog input,
+    .dialog textarea {
+      width: 100%;
+      margin-bottom: 12px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .dialog textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .secondary {
+      border: 1px solid var(--line-strong);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .danger {
+      border-color: rgba(255,93,93,0.6);
+      background: rgba(255,93,93,0.08);
+    }
+
+    @media (max-width: 720px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      aside {
+        display: none;
+      }
+      .suggestions {
+        grid-template-columns: 1fr;
+      }
+      .empty h1 {
+        font-size: 25px;
+      }
+      form.composer {
+        grid-template-columns: 1fr;
+      }
+      .send {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
 <body>
-<div class="layout"><aside>
- <div class="brand"><span class="logo">N</span>NitroAI</div><button class="new" id="newChat">＋ Nouveau chat</button>
- <div class="section">Historique</div><div id="chatList"></div>
- <div class="sidebottom">
-  <button id="loadPiaf">⇩ Charger le dataset PIAF (JSON)</button>
-  <input id="file" type="file" accept=".json,application/json" hidden>
-  <button id="addKnowledge">＋ Ajouter une connaissance</button>
-  <div class="dbbox"><strong id="dbLabel">Base de connaissances : exemples</strong><br><span id="dbInfo">Ajoute le fichier PIAF JSON pour charger le corpus public localement dans ce navigateur.</span><br><br><a style="color:#9fd8c8" href="https://www.data.gouv.fr/datasets/piaf-le-dataset-francophone-de-questions-reponses" target="_blank" rel="noreferrer">Source officielle du dataset PIAF ↗</a></div>
- </div>
-</aside>
-<main><div class="top"><strong id="chatTitle">NitroAI</strong><select id="mode" aria-label="Mode de réponse"><option value="both">IA + base</option><option value="knowledge">Base seule</option><option value="general">IA générale (prototype)</option></select></div>
-<div id="messages"><div class="empty"><h1>Que veux-tu explorer ?</h1><div class="muted">Chat local avec historique et base de connaissances PIAF importable.</div><div class="suggestions"><button data-q="Pourquoi le ciel est-il bleu ?">Pourquoi le ciel est-il bleu ?</button><button data-q="Comment fonctionne un moteur à quatre temps ?">Comment fonctionne un moteur ?</button><button data-q="Que sais-tu du système solaire ?">Que sais-tu du système solaire ?</button><button data-q="Comment utiliser la base PIAF ?">Comment utiliser la base PIAF ?</button></div></div></div>
-<div class="status" id="status">Aucun modèle génératif branché : NitroAI retrouve des extraits dans la base.</div>
-<div class="composerwrap"><form id="form" class="composer"><textarea id="prompt" rows="1" placeholder="Message à NitroAI…" aria-label="Message"></textarea><button class="send" type="submit" aria-label="Envoyer">↑</button></form><div class="footnote">Prototype de recherche augmentée. Vérifie les informations importantes.</div></div>
-</main></div>
-<div class="modal" id="modal"><div class="dialog"><h3 style="margin:0">Ajouter une connaissance</h3><input id="knowTitle" placeholder="Titre"><textarea id="knowText" placeholder="Texte à ajouter dans la base locale"></textarea><div class="actions"><button id="cancel">Annuler</button><button id="save" class="primary">Enregistrer</button></div></div></div>
-<script>
-const $=id=>document.getElementById(id);
-const demo=[
-{title:"Le ciel bleu",text:"Le ciel paraît bleu parce que les molécules de l’atmosphère diffusent davantage les courtes longueurs d’onde de la lumière solaire, notamment le bleu. Ce phénomène s’appelle la diffusion de Rayleigh."},
-{title:"Moteur à quatre temps",text:"Un moteur à combustion interne transforme l’énergie de combustion en mouvement mécanique. Les quatre phases sont admission, compression, combustion-détente et échappement."},
-{title:"Système solaire",text:"Le système solaire comprend le Soleil et les objets gravitant autour de lui, dont huit planètes, leurs satellites, des planètes naines, des astéroïdes et des comètes."},
-{title:"Python",text:"Python est un langage de programmation interprété à syntaxe lisible. Il sert notamment à automatiser, créer des applications et analyser des données."}
-];
-let corpus=JSON.parse(localStorage.getItem("nitroai_corpus")||"null")||demo;
-let chats=JSON.parse(localStorage.getItem("nitroai_chats_v2")||"null")||[],current=null;
-function save(){localStorage.setItem("nitroai_corpus",JSON.stringify(corpus));localStorage.setItem("nitroai_chats_v2",JSON.stringify(chats))}
-function newChat(){let c={id:Date.now().toString(),title:"Nouveau chat",messages:[]};chats.unshift(c);current=c.id;save();render()}
-function active(){return chats.find(c=>c.id===current)}
-function renderList(){let list=$("chatList");list.innerHTML="";chats.forEach(c=>{let row=document.createElement("div");row.className="chatrow"+(c.id===current?" selected":"");let b=document.createElement("button");b.className="chatname";b.textContent=c.title;b.onclick=()=>{current=c.id;render()};let d=document.createElement("button");d.className="delete";d.textContent="×";d.title="Supprimer";d.onclick=()=>{chats=chats.filter(x=>x.id!==c.id);current=chats[0]?.id||null;if(!current)newChat();save();render()};row.append(b,d);list.append(row)})}
-function renderMessages(){let root=$("messages"),c=active();root.innerHTML="";if(!c||!c.messages.length){root.innerHTML='<div class="empty"><h1>Que veux-tu explorer ?</h1><div class="muted">Chat local avec historique et base de connaissances importable.</div><div class="suggestions"><button data-q="Pourquoi le ciel est-il bleu ?">Pourquoi le ciel est-il bleu ?</button><button data-q="Comment fonctionne un moteur à quatre temps ?">Comment fonctionne un moteur ?</button><button data-q="Que sais-tu du système solaire ?">Que sais-tu du système solaire ?</button><button data-q="Comment utiliser la base PIAF ?">Comment utiliser la base PIAF ?</button></div></div>';root.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>send(b.dataset.q));return}
-c.messages.forEach(m=>{let w=document.createElement("div");w.className="message "+m.role;let a=document.createElement("div");a.className="avatar";a.textContent=m.role==="user"?"T":"N";let b=document.createElement("div");b.className="body";b.textContent=m.content;if(m.sources?.length){let s=document.createElement("div");s.className="cite";s.textContent="Extraits consultés : "+m.sources.join(" · ");b.append(s)}w.append(a,b);root.append(w)});root.scrollTop=root.scrollHeight}
-function render(){if(!current){if(chats.length)current=chats[0].id;else{newChat();return}}renderList();renderMessages();$("chatTitle").textContent=active()?.title||"NitroAI"}
-function norm(s){return s.toLocaleLowerCase("fr").normalize("NFD").replace(/\p{Diacritic}/gu,"")}
-function tokens(s){return(norm(s).match(/[a-z0-9]+/g)||[]).filter(w=>w.length>2)}
-function retrieve(q){let qset=new Set(tokens(q));return corpus.map(d=>{let t=tokens((d.title||"")+" "+(d.text||"")+" "+(d.question||"")+" "+(d.answer||""));let score=t.reduce((n,w)=>n+(qset.has(w)?1:0),0);return{...d,score}}).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,5)}
-function answer(q,docs){if(!docs.length)return "Je ne trouve pas d’extrait qui corresponde à cette question dans la base chargée. Essaie d’importer le dataset PIAF ou d’ajouter une connaissance.";return "J’ai retrouvé ces passages dans ma base :\n\n"+docs.map(d=>{let label=d.title||d.question||"Extrait";let text=d.text||d.answer||d.context||"";return label+"\n"+text}).join("\n\n")+"\n\nJe peux répondre plus précisément si la base contient davantage de contexte."}
-function send(q){q=(q||$("prompt").value).trim();if(!q)return;if(!current)newChat();let c=active();c.messages.push({role:"user",content:q});if(c.messages.length===1)c.title=q.slice(0,42)+(q.length>42?"…":"");let found=retrieve(q);let mode=$("mode").value;let a=answer(q,found);if(mode==="general")a="Le mode IA générale nécessite un modèle de langage exécuté dans le navigateur. Pour le moment, voici une recherche dans le corpus local :\n\n"+a;c.messages.push({role:"assistant",content:a,sources:mode==="general"?[]:found.map(d=>d.title||d.question||"Extrait")});$("prompt").value="";save();render()}
-function flattenPIAF(data){let out=[];let root=data.data||data; if(Array.isArray(root)){for(let item of root){if(item.paragraphs){for(let p of item.paragraphs){const ctx=p.context||"";for(let qa of (p.qas||[])){let ans=qa.answers?.[0]?.text||qa.answer||"";out.push({title:qa.question||"Question PIAF",question:qa.question||"",answer:ans,text:ans||ctx,context:ctx})}}}else if(item.question){out.push({title:item.question,question:item.question,answer:item.answer||"",text:item.answer||item.context||"",context:item.context||""})}}}
-else if(root&&Array.isArray(root.paragraphs)){for(let p of root.paragraphs){for(let qa of p.qas||[])out.push({title:qa.question,question:qa.question,answer:qa.answers?.[0]?.text||"",text:p.context||""})}}
-return out.filter(x=>(x.text||x.answer||x.context))}
-$("loadPiaf").onclick=()=>$("file").click();
-$("file").onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let data=JSON.parse(await f.text());let parsed=flattenPIAF(data);if(!parsed.length)throw Error("Format JSON PIAF non reconnu.");corpus=parsed;save();$("dbLabel").textContent="Base PIAF chargée";$("dbInfo").textContent=parsed.length.toLocaleString("fr-FR")+" passages importés dans ce navigateur."; $("status").textContent="Dataset PIAF chargé localement. Recherche textuelle prête."; }catch(err){$("status").textContent="Import impossible : "+err.message}e.target.value=""};
-$("addKnowledge").onclick=()=>$("modal").classList.add("open");$("cancel").onclick=()=>$("modal").classList.remove("open");$("save").onclick=()=>{let title=$("knowTitle").value.trim(),text=$("knowText").value.trim();if(!title||!text){alert("Ajoute un titre et un texte.");return}corpus.unshift({title,text});save();$("knowTitle").value="";$("knowText").value="";$("modal").classList.remove("open");$("dbLabel").textContent="Base personnalisée";$("dbInfo").textContent=corpus.length+" extraits enregistrés localement."};
-$("newChat").onclick=newChat;$("form").onsubmit=e=>{e.preventDefault();send()};$("prompt").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("form").requestSubmit()}};
-render();
-async function loadPiafAutomatically() {
-    try {
-        const response = await fetch("./piaf-v1.2.json");
+  <div class="layout">
+    <aside>
+      <div class="brand"><span class="logo">N</span>NitroAI</div>
+      <button class="new" id="newChat">＋ Nouveau chat</button>
 
-        if (!response.ok) {
-            throw new Error("Impossible de charger le dataset");
-        }
+      <div class="section">Historique</div>
+      <div id="chatList"></div>
 
-        const data = await response.json();
+      <div class="sidebottom">
+        <button id="loadPiaf">⇩ Charger le dataset PIAF (JSON)</button>
+        <input id="file" type="file" accept=".json,application/json" hidden>
+        <button id="reloadPiaf">↻ Recharger PIAF</button>
+        <button id="addKnowledge">＋ Ajouter une connaissance</button>
 
-        const parsed = flattenPIAF(data);
+        <div class="dbbox">
+          <strong id="dbLabel">Base de connaissances : chargement...</strong><br>
+          <span id="dbInfo">Chargement du corpus local et tentative auto de piaf-v1.2.json…</span>
+        </div>
+      </div>
+    </aside>
 
-        if (!parsed.length) {
-            throw new Error("Format JSON non reconnu");
-        }
+    <main>
+      <div class="top">
+        <strong id="chatTitle">NitroAI</strong>
+        <div class="topbar-actions">
+          <select id="mode" aria-label="Mode de réponse">
+            <option value="both">IA + base</option>
+            <option value="knowledge">Base seule</option>
+          </select>
+        </div>
+      </div>
 
-        corpus = parsed;
+      <div class="status" id="status">Chargement de la base de connaissances…</div>
 
-        save();
+      <div id="messages"></div>
 
-        document.getElementById("dbLabel").textContent =
-            "Base PIAF chargée automatiquement";
+      <div class="composerwrap">
+        <form id="form" class="composer">
+          <textarea id="prompt" rows="1" placeholder="Message à NitroAI…" aria-label="Message"></textarea>
+          <button class="send" type="submit" aria-label="Envoyer">Envoyer</button>
+        </form>
+      </div>
+    </main>
+  </div>
 
-        document.getElementById("dbInfo").textContent =
-            parsed.length.toLocaleString("fr-FR") +
-            " passages importés depuis piaf-v1.2.json.";
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h3 id="modalTitle">Ajouter une connaissance</h3>
+      <label for="knowTitle">Titre</label>
+      <input id="knowTitle" placeholder="Titre de la connaissance">
+      <label for="knowText">Texte</label>
+      <textarea id="knowText" placeholder="Saisis le contenu à ajouter dans la base…"></textarea>
+      <div class="dialog-actions">
+        <button type="button" class="secondary" id="cancel">Annuler</button>
+        <button type="button" class="send" id="save">Enregistrer</button>
+      </div>
+    </div>
+  </div>
 
-        document.getElementById("status").textContent =
-            "Base de connaissances prête !";
+  <script>
+    const $ = (id) => document.getElementById(id);
 
-    } catch (error) {
-        console.error("Erreur de chargement PIAF :", error);
+    const demo = [
+      { title: 'Le ciel bleu', text: 'Le ciel paraît bleu parce que les molécules de l’atmosphère diffusent davantage les courtes longueurs d’onde de la lumière solaire, notamment le bleu.' },
+      { title: 'Moteur à quatre temps', text: 'Un moteur à combustion interne transforme l’énergie de combustion en mouvement mécanique. Les quatre phases sont admission, compression, combustion-détente et échappement.' },
+      { title: 'Système solaire', text: 'Le système solaire comprend le Soleil et les objets gravitant autour de lui, dont huit planètes, leurs satellites, des planètes naines, des astéroïdes et des comètes.' },
+      { title: 'Python', text: 'Python est un langage de programmation interprété à syntaxe lisible. Il sert notamment à automatiser, créer des applications et analyser des données.' }
+    ];
 
-        document.getElementById("dbLabel").textContent =
-            "Erreur de chargement de PIAF";
+    const STORAGE = {
+      corpus: 'nitroai_corpus_v2',
+      chats: 'nitroai_chats_v2',
+      current: 'nitroai_current_chat_v2'
+    };
 
-        document.getElementById("dbInfo").textContent =
-            "Vérifie que piaf-v1.2.json est bien à la racine du dépôt.";
-    }
-}
+    let corpus = loadCorpus();
+    let chats = loadChats();
+    let current = localStorage.getItem(STORAGE.current) || null;
 
-loadPiafAutomatically();
- let piaf = null;
-
-async function importerPiaf() {
-  try {
-    const response = await fetch("./piaf-v1.2.json");
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+    function readJSON(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : fallback;
+      } catch (error) {
+        console.warn('Lecture storage impossible:', key, error);
+        return fallback;
+      }
     }
 
-    piaf = await response.json();
+    function loadCorpus() {
+      const saved = readJSON(STORAGE.corpus, null);
+      return saved && saved.length ? saved : demo.map(item => ({ ...item, id: cryptoRandomId() }));
+    }
 
-    console.log("PIAF chargé avec succès !");
-    console.log("Données :", piaf);
+    function loadChats() {
+      try {
+        const raw = localStorage.getItem(STORAGE.chats);
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (!Array.isArray(parsed) || !parsed.length) return [];
+        return parsed;
+      } catch {
+        return [];
+      }
+    }
 
-    return piaf;
-  } catch (error) {
-    console.error("Erreur de chargement PIAF :", error);
-    throw error;
-  }
-}
+    function saveState() {
+      localStorage.setItem(STORAGE.corpus, JSON.stringify(corpus));
+      localStorage.setItem(STORAGE.chats, JSON.stringify(chats));
+      if (current) localStorage.setItem(STORAGE.current, current);
+    }
 
-importerPiaf();
-</script></body></html>
+    function cryptoRandomId() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+    }
+
+    function createChat(title = 'Nouveau chat') {
+      const chat = {
+        id: cryptoRandomId(),
+        title,
+        messages: []
+      };
+      chats.unshift(chat);
+      current = chat.id;
+      saveState();
+      render();
+      return chat;
+    }
+
+    function activeChat() {
+      if (!current) {
+        current = chats[0]?.id || null;
+      }
+      return chats.find(chat => chat.id === current) || null;
+    }
+
+    function sortChats() {
+      chats = chats.slice().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+    }
+
+    function updateChatTimestamp(chat) {
+      if (!chat) return;
+      chat.updatedAt = Date.now();
+    }
+
+    function renderList() {
+      const list = $('chatList');
+      list.innerHTML = '';
+
+      if (!chats.length) {
+        list.innerHTML = '<div class="muted" style="padding:8px 10px;">Aucun chat</div>';
+        return;
+      }
+
+      chats.forEach(chat => {
+        const row = document.createElement('div');
+        row.className = 'chatrow' + (chat.id === current ? ' selected' : '');
+
+        const main = document.createElement('div');
+        main.className = 'chatmain';
+        main.title = chat.title;
+        main.onclick = () => {
+          current = chat.id;
+          saveState();
+          render();
+        };
+
+        const label = document.createElement('div');
+        label.className = 'chatlabel';
+        label.textContent = chat.title || 'Sans titre';
+        main.appendChild(label);
+
+        const del = document.createElement('button');
+        del.className = 'chatdelete';
+        del.type = 'button';
+        del.textContent = '✕';
+        del.title = 'Supprimer ce chat';
+        del.onclick = (event) => {
+          event.stopPropagation();
+          chats = chats.filter(item => item.id !== chat.id);
+          if (current === chat.id) {
+            current = chats[0]?.id || null;
+          }
+          saveState();
+          render();
+        };
+
+        row.appendChild(main);
+        row.appendChild(del);
+        list.appendChild(row);
+      });
+    }
+
+    function renderMessages() {
+      const root = $('messages');
+      const chat = activeChat();
+      if (!chat || !chat.messages.length) {
+        root.innerHTML = `
+          <div class="empty">
+            <h1>Que veux-tu explorer ?</h1>
+            <div class="muted">Chat local avec historique et base de connaissances PIAF importable.</div>
+            <div class="suggestions">
+              <button type="button" data-prompt="Qu’est-ce que le système solaire ?">Qu’est-ce que le système solaire ?</button>
+              <button type="button" data-prompt="Explique-moi le moteur à quatre temps.">Explique-moi le moteur à quatre temps.</button>
+              <button type="button" data-prompt="Pourquoi le ciel est-il bleu ?">Pourquoi le ciel est-il bleu ?</button>
+              <button type="button" data-prompt="Que peut-on faire avec Python ?">Que peut-on faire avec Python ?</button>
+            </div>
+          </div>
+        `;
+
+        root.querySelectorAll('[data-prompt]').forEach(button => {
+          button.onclick = () => send(button.dataset.prompt);
+        });
+        return;
+      }
+
+      root.innerHTML = '';
+      chat.messages.forEach(message => {
+        const wrap = document.createElement('div');
+        wrap.className = 'message ' + message.role;
+
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.textContent = message.role === 'user' ? 'T' : 'N';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.textContent = message.content;
+
+        wrap.appendChild(avatar);
+        wrap.appendChild(bubble);
+        root.appendChild(wrap);
+      });
+
+      requestAnimationFrame(() => {
+        const messages = $('messages');
+        messages.scrollTop = messages.scrollHeight;
+      });
+    }
+
+    function render() {
+      const chat = activeChat();
+      if (!current && chats.length) current = chats[0].id;
+      if (!current && !chats.length) {
+        createChat('Nouveau chat');
+        return;
+      }
+
+      $('chatTitle').textContent = chat?.title || 'NitroAI';
+      renderList();
+      renderMessages();
+      saveState();
+    }
+
+    function normalizeText(str) {
+      return String(str || '').toLocaleLowerCase('fr').normalize('NFD').replace(/\p{Diacritic}/gu, '');
+    }
+
+    function tokenize(str) {
+      return (normalizeText(str).match(/[a-z0-9]+/g) || []).filter(word => word.length > 2);
+    }
+
+    function flattenPIAF(data) {
+      const out = [];
+      const root = data && data.data ? data.data : data;
+
+      const walk = (item) => {
+        if (!item || typeof item !== 'object') return;
+
+        if (Array.isArray(item)) {
+          item.forEach(walk);
+          return;
+        }
+
+        if (item.paragraphs && Array.isArray(item.paragraphs)) {
+          item.paragraphs.forEach(walk);
+          return;
+        }
+
+        if (item.qas && Array.isArray(item.qas)) {
+          item.qas.forEach(qa => {
+            const question = qa.question || qa.prompt || '';
+            const answer = qa.answers && qa.answers[0] ? qa.answers[0].text || qa.answers[0].answer || '' : (qa.answer || '');
+            const context = item.context || item.text || '';
+            const title = question || (item.title || 'PIAF');
+            if (question || answer || context) {
+              out.push({
+                title: title,
+                question: question,
+                answer: answer,
+                text: context,
+                context: context
+              });
+            }
+          });
+          return;
+        }
+
+        if (item.context || item.text || item.answer || item.question) {
+          const text = item.text || item.context || item.answer || item.question || '';
+          const answer = item.answer || item.text || '';
+          const question = item.question || item.title || '';
+          if (text || answer || question) {
+            out.push({
+              title: item.title || question || 'PIAF',
+              question: question,
+              answer: answer,
+              text: text,
+              context: item.context || item.text || ''
+            });
+          }
+        }
+
+        Object.values(item).forEach(walk);
+      };
+
+      walk(root);
+
+      return out.filter(entry => (entry.text || entry.answer || entry.context || entry.question || entry.title)).slice(0, 20000);
+    }
+
+    function updateDbStatus(label, info, statusText) {
+      $('dbLabel').textContent = label;
+      $('dbInfo').textContent = info;
+      if (statusText) $('status').textContent = statusText;
+    }
+
+    function applyCorpus(parsed) {
+      if (!Array.isArray(parsed) || !parsed.length) {
+        throw new Error('Format JSON PIAF non reconnu ou vide.');
+      }
+      corpus = parsed.map(item => ({ ...item, id: cryptoRandomId() }));
+      saveState();
+      updateDbStatus(
+        'Base PIAF chargée',
+        parsed.length.toLocaleString('fr-FR') + ' passages importés depuis piaf-v1.2.json.',
+        'Base de connaissances prête !'
+      );
+    }
+
+    async function loadPiafFromFile(file) {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const results = flattenPIAF(parsed);
+      applyCorpus(results);
+    }
+
+    async function autoLoadPiaf() {
+      const candidates = [
+        './piaf-v1.2.json',
+        '/piaf-v1.2.json',
+        '/Nitrox-creator/NitroAI/piaf-v1.2.json'
+      ];
+
+      for (const url of candidates) {
+        try {
+          const response = await fetch(url, { cache: 'no-store' });
+          if (!response.ok) continue;
+          const json = await response.json();
+          const parsed = flattenPIAF(json);
+          if (!parsed.length) continue;
+          applyCorpus(parsed);
+          return;
+        } catch (error) {
+          console.warn('Impossible de charger', url, error);
+        }
+      }
+
+      updateDbStatus(
+        'Erreur de chargement de PIAF',
+        'Le fichier piaf-v1.2.json est introuvable. Tu peux l’importer manuellement avec le bouton “Charger le dataset”.',
+        'Aucun dataset PIAF trouvé : l’application continue avec la base d’exemple.'
+      );
+      corpus = demo.map(item => ({ ...item, id: cryptoRandomId() }));
+      saveState();
+    }
+
+    function retrieve(query) {
+      const qset = new Set(tokenize(query));
+      if (!qset.size) return [];
+
+      return corpus
+        .map(document => {
+          const text = [document.title, document.text, document.question, document.answer, document.context].join(' ');
+          const tokens = tokenize(text);
+          const uniqueTokens = new Set(tokens);
+          let score = 0;
+
+          for (const word of qset) {
+            if (uniqueTokens.has(word)) score += 2;
+            if (tokens.filter(token => token === word).length > 1) score += 1;
+          }
+
+          return { document, score, tokens };
+        })
+        .filter(entry => entry.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+    }
+
+    function buildAnswer(query, docs, mode) {
+      if (!docs.length) {
+        if (mode === 'knowledge') {
+          return 'Je ne trouve pas de résultat fiable dans la base PIAF pour cette question.';
+        }
+        return 'Je ne trouve pas d’extrait dans la base chargée qui répond à cette question. Essaie d’importer un dataset PIAF ou d’ajouter une connaissance.';
+      }
+
+      const topDocs = docs.slice(0, 3);
+      const evidence = topDocs.map((entry, index) => {
+        const document = entry.document;
+        const text = document.answer || document.text || document.context || document.question || document.title || '';
+        const snippet = text.replace(/\s+/g, ' ').trim();
+        return `• ${document.title || 'Extrait ' + (index + 1)} : ${snippet.slice(0, 260)}`;
+      }).join('\n\n');
+
+      if (mode === 'knowledge') {
+        return evidence;
+      }
+
+      const answer = `D’après la base locale, voici les éléments les plus pertinents :\n\n${evidence}`;
+      return answer;
+    }
+
+    function send(rawPrompt) {
+      const q = (rawPrompt || $('prompt').value).trim();
+      if (!q) return;
+
+      let chat = activeChat();
+      if (!chat) chat = createChat('Nouveau chat');
+
+      if (!chat.messages) chat.messages = [];
+      chat.messages.push({ role: 'user', content: q });
+      updateChatTimestamp(chat);
+
+      const mode = $('mode').value;
+      const docs = retrieve(q);
+      const reply = buildAnswer(q, docs, mode);
+
+      chat.messages.push({ role: 'assistant', content: reply });
+      chat.title = chat.title && chat.title !== 'Nouveau chat' ? chat.title : (q.length > 42 ? q.slice(0, 42) + '…' : q);
+      saveState();
+      render();
+      $('prompt').value = '';
+      $('prompt').focus();
+    }
+
+    function openModal() {
+      const modal = $('modal');
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      $('knowTitle').focus();
+    }
+
+    function closeModal() {
+      const modal = $('modal');
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      $('knowTitle').value = '';
+      $('knowText').value = '';
+    }
+
+    function addKnowledge() {
+      const title = $('knowTitle').value.trim();
+      const text = $('knowText').value.trim();
+      if (!title && !text) {
+        alert('Saisis un titre et un texte pour ajouter une connaissance.');
+        return;
+      }
+
+      const item = {
+        title: title || 'Connaissance ajoutée',
+        text: text || title,
+        question: title,
+        answer: text || title,
+        context: text || title
+      };
+
+      corpus.unshift(item);
+      saveState();
+      closeModal();
+      updateDbStatus(
+        'Base de connaissances mise à jour',
+        corpus.length.toLocaleString('fr-FR') + ' éléments disponibles dans la base locale.',
+        'Connaissance ajoutée à la base.'
+      );
+    }
+
+    function bindEvents() {
+      $('newChat').onclick = () => createChat('Nouveau chat');
+
+      $('loadPiaf').onclick = () => $('file').click();
+      $('reloadPiaf').onclick = async () => {
+        $('status').textContent = 'Rechargement du dataset PIAF…';
+        await autoLoadPiaf();
+      };
+
+      $('file').onchange = async (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        try {
+          $('status').textContent = 'Import du fichier JSON…';
+          await loadPiafFromFile(file);
+          $('status').textContent = 'Fichier PIAF importé avec succès.';
+        } catch (error) {
+          console.error(error);
+          $('status').textContent = 'Le fichier sélectionné n’est pas un dataset PIAF valide.';
+        } finally {
+          event.target.value = '';
+        }
+      };
+
+      $('addKnowledge').onclick = openModal;
+      $('cancel').onclick = closeModal;
+      $('save').onclick = addKnowledge;
+
+      $('form').onsubmit = (event) => {
+        event.preventDefault();
+        send();
+      };
+
+      $('prompt').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          $('form').requestSubmit();
+        }
+      });
+
+      $('modal').addEventListener('click', (event) => {
+        if (event.target === $('modal')) closeModal();
+      });
+    }
+
+    function init() {
+      bindEvents();
+      if (!chats.length) {
+        chats = [{ id: cryptoRandomId(), title: 'Nouveau chat', messages: [] }];
+        current = chats[0].id;
+      }
+      render();
+      autoLoadPiaf();
+    }
+
+    init();
+  </script>
+</body>
+</html>
