@@ -1,0 +1,2 @@
+# NitroAI
+free AI
