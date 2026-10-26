@@ -63,4 +63,46 @@ $("file").onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let data=J
 $("addKnowledge").onclick=()=>$("modal").classList.add("open");$("cancel").onclick=()=>$("modal").classList.remove("open");$("save").onclick=()=>{let title=$("knowTitle").value.trim(),text=$("knowText").value.trim();if(!title||!text){alert("Ajoute un titre et un texte.");return}corpus.unshift({title,text});save();$("knowTitle").value="";$("knowText").value="";$("modal").classList.remove("open");$("dbLabel").textContent="Base personnalisée";$("dbInfo").textContent=corpus.length+" extraits enregistrés localement."};
 $("newChat").onclick=newChat;$("form").onsubmit=e=>{e.preventDefault();send()};$("prompt").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("form").requestSubmit()}};
 render();
+async function loadPiafAutomatically() {
+    try {
+        const response = await fetch("./piaf-v1.2.json");
+
+        if (!response.ok) {
+            throw new Error("Impossible de charger le dataset");
+        }
+
+        const data = await response.json();
+
+        const parsed = flattenPIAF(data);
+
+        if (!parsed.length) {
+            throw new Error("Format JSON non reconnu");
+        }
+
+        corpus = parsed;
+
+        save();
+
+        document.getElementById("dbLabel").textContent =
+            "Base PIAF chargée automatiquement";
+
+        document.getElementById("dbInfo").textContent =
+            parsed.length.toLocaleString("fr-FR") +
+            " passages importés depuis piaf-v1.2.json.";
+
+        document.getElementById("status").textContent =
+            "Base de connaissances prête !";
+
+    } catch (error) {
+        console.error("Erreur de chargement PIAF :", error);
+
+        document.getElementById("dbLabel").textContent =
+            "Erreur de chargement de PIAF";
+
+        document.getElementById("dbInfo").textContent =
+            "Vérifie que piaf-v1.2.json est bien à la racine du dépôt.";
+    }
+}
+
+loadPiafAutomatically();
 </script></body></html>
